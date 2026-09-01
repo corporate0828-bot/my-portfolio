@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Sparkles,
@@ -16,9 +16,12 @@ import {
   GraduationCap,
   CheckCircle2,
   ExternalLink,
-  MapPin
+  MapPin,
+  Camera,
+  Upload
 } from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
+import nishantPhoto from '../assets/photo.jpg';
 
 interface HeroProps {
   onOpenResume: () => void;
@@ -32,6 +35,48 @@ export const Hero: React.FC<HeroProps> = ({
   onOpenProjectDemo,
 }) => {
   const [roleIndex, setRoleIndex] = useState(0);
+  const [photoSrc, setPhotoSrc] = useState<string>(() => {
+    return localStorage.getItem('user_profile_photo') || nishantPhoto;
+  });
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync photo with localStorage so user upload persists across all views
+  useEffect(() => {
+    const saved = localStorage.getItem('user_profile_photo');
+    if (saved) {
+      setPhotoSrc(saved);
+    }
+
+    const handleStorage = () => {
+      const updated = localStorage.getItem('user_profile_photo');
+      if (updated) setPhotoSrc(updated);
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
+  const handleImageError = () => {
+    if (photoSrc !== nishantPhoto) {
+      setPhotoSrc(nishantPhoto);
+    }
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64 = event.target?.result as string;
+        if (base64) {
+          setPhotoSrc(base64);
+          localStorage.setItem('user_profile_photo', base64);
+          window.dispatchEvent(new Event('storage'));
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -193,14 +238,34 @@ export const Hero: React.FC<HeroProps> = ({
                 <div className="relative w-full aspect-[4/5] overflow-hidden bg-slate-950">
                   <img
                     id="hero-profile-photo"
-                    src="/nishant-photo.jpg"
+                    src={photoSrc}
+                    onError={handleImageError}
                     alt="Nishant Pisal - Full-Stack AI Engineer & Academic Rank #1 Leader"
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                   />
 
+                  {/* Hidden File Input for Custom Photo Replacement */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePhotoUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  {/* Quick Change / Upload Photo Overlay Button */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute top-14 right-4 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 hover:bg-cyan-950 text-slate-300 hover:text-cyan-300 border border-slate-700 hover:border-cyan-500/50 text-[10px] font-mono transition-all backdrop-blur-md opacity-70 hover:opacity-100 cursor-pointer shadow-md"
+                    title="Change or upload custom photo"
+                  >
+                    <Camera className="w-3 h-3 text-cyan-400" />
+                    <span>Update Photo</span>
+                  </button>
+
                   {/* Gradient Scrim at the bottom for smooth text contrast */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent pointer-events-none" />
                 </div>
 
                 {/* Bottom Card Content & Credential Highlights */}

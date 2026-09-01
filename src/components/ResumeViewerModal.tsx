@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   X,
@@ -18,6 +18,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { PERSONAL_INFO, PROJECTS_DATA, EXPERIENCES_DATA, EDUCATION_DATA, CERTIFICATIONS_DATA } from '../data/portfolioData';
+import nishantPhoto from '../assets/photo.jpg';
 
 interface ResumeViewerModalProps {
   isOpen: boolean;
@@ -26,6 +27,20 @@ interface ResumeViewerModalProps {
 
 export const ResumeViewerModal: React.FC<ResumeViewerModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const [photoSrc, setPhotoSrc] = useState<string>(() => {
+    return localStorage.getItem('user_profile_photo') || nishantPhoto;
+  });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('user_profile_photo');
+    if (saved) setPhotoSrc(saved);
+  }, [isOpen]);
+
+  const handleImgError = () => {
+    if (photoSrc !== nishantPhoto) {
+      setPhotoSrc(nishantPhoto);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -132,7 +147,8 @@ CERTIFICATIONS & ACHIEVEMENTS
               {/* Header */}
               <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-800">
                 <img
-                  src="/nishant-photo.jpg"
+                  src={photoSrc}
+                  onError={handleImgError}
                   alt="Nishant Pisal"
                   referrerPolicy="no-referrer"
                   className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover object-top border-2 border-cyan-500/40 shadow-lg shrink-0"
