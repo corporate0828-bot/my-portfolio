@@ -21,7 +21,7 @@ import {
   Upload
 } from 'lucide-react';
 import { PERSONAL_INFO } from '../data/portfolioData';
-import nishantPhoto from '../assets/photo.jpg';
+import nishantPhoto from 'photo.jpg';
 
 interface HeroProps {
   onOpenResume: () => void;
